@@ -7,6 +7,7 @@ resource "google_project_service" "apis" {
     "artifactregistry.googleapis.com",
     "iam.googleapis.com",
     "cloudresourcemanager.googleapis.com",
+    "vision.googleapis.com",
   ])
 
   service            = each.value
