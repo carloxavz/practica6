@@ -29,6 +29,7 @@ El backend abre la imagen, corrige la orientación que traen las fotos de teléf
     {"nombre": "Coffee cup", "confianza": 0.95}
   ],
   "vision": "ok",
+  "texto": "SAN LUIS ...",
   "miniatura": "/fotos/20261026-185734-44f39d/miniatura"
 }
 ```
@@ -61,5 +62,6 @@ La miniatura lleva tres metadatos propios, escritos en la misma operación con q
 | `autor` | El nombre que escribió quien subió la foto |
 | `etiquetas` | Las etiquetas en JSON, o vacío si Vision no respondió |
 | `vision` | `ok`, o `error: ...` con el motivo |
+| `texto` | El texto que leyó Vision con `text_detection`, en una sola línea y cortado a 1000 caracteres. Vacío si no hay texto o si Vision no respondió |
 
 Los originales se guardan pero el backend nunca los sirve: lo único que sale hacia los navegadores son las miniaturas.
