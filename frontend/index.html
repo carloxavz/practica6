@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Qué hay en la foto?</title>
+<style>
+  :root {
+    --rojo: #c8102e;
+    --rojo-oscuro: #9b0c23;
+    --rojo-suave: #fdecee;
+    --fondo: #f6f3ef;
+    --tarjeta: #ffffff;
+    --texto: #1f1b18;
+    --suave: #6f665f;
+    --borde: #e8e1d9;
+    --verde: #1f7a3d;
+    --ambar: #c27100;
+    --sombra: 0 1px 2px rgba(31, 27, 24, .06), 0 4px 14px rgba(31, 27, 24, .06);
+    --radio: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--fondo);
+    color: var(--texto);
+    font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  button, input { font: inherit; }
+  [hidden] { display: none !important; }
+
+  .barra {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    background: var(--rojo); color: #fff;
+    box-shadow: 0 2px 10px rgba(155, 12, 35, .25);
+  }
+  .logo {
+    display: grid; place-items: center;
+    width: 38px; height: 38px; border-radius: 10px;
+    background: #fff; color: var(--rojo); font-weight: 800; letter-spacing: -.5px;
+  }
+  .barra strong { display: block; font-size: 17px; line-height: 1.1; }
+  .barra small { opacity: .85; font-size: 13px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 16px; }
+  h2 { font-size: 18px; margin: 24px 0 10px; display: flex; justify-content: space-between; align-items: center; }
+
+  .aviso {
+    margin: 0 0 16px; padding: 14px 16px;
+    border-left: 4px solid var(--rojo); border-radius: 10px;
+    background: var(--rojo-suave); color: var(--rojo-oscuro);
+  }
+  .aviso strong { display: block; margin-bottom: 2px; }
+  .aviso code { word-break: break-all; font-size: 13px; }
+
+  .tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: var(--radio); box-shadow: var(--sombra); }
+
+  .subir { padding: 16px; display: grid; gap: 10px; }
+  .subir label.archivo {
+    display: grid; place-items: center; gap: 4px;
+    padding: 22px 12px; border: 2px dashed var(--borde); border-radius: 12px;
+    color: var(--suave); text-align: center; cursor: pointer;
+  }
+  .subir label.archivo b { color: var(--rojo); font-size: 17px; }
+  .subir label.archivo.con-foto { border-style: solid; border-color: var(--verde); color: var(--verde); }
+  .subir input[type="file"] { display: none; }
+  .subir input[type="text"] {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--borde); border-radius: 10px; background: var(--fondo);
+  }
+  .subir input[type="text"]:focus { outline: 2px solid var(--rojo); outline-offset: -1px; background: #fff; }
+  .boton {
+    padding: 11px 20px; border: 0; border-radius: 10px; cursor: pointer;
+    background: var(--rojo); color: #fff; font-weight: 700;
+  }
+  .boton:disabled { background: #d9cfc7; cursor: default; }
+  .boton.secundario { background: #fff; color: var(--rojo); border: 1px solid var(--rojo); padding: 7px 14px; font-size: 14px; }
+  .error { margin: 0; color: var(--rojo); font-size: 14px; }
+
+  .resultado { margin-top: 16px; overflow: hidden; }
+  .resultado img { display: block; width: 100%; max-height: 360px; object-fit: cover; background: #ddd; }
+  .resultado .cuerpo { padding: 14px 16px 16px; }
+  .resultado .quien { margin: 0 0 10px; color: var(--suave); font-size: 14px; }
+  .etiquetas { list-style: none; padding: 0; margin: 0; display: grid; gap: 7px; }
+  .etiquetas li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; font-size: 15px; }
+  .etiquetas li .nombre { font-weight: 650; }
+  .etiquetas li .pct { font-variant-numeric: tabular-nums; color: var(--suave); font-size: 13px; }
+  .etiquetas li .barra-conf { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--rojo-suave); overflow: hidden; }
+  .etiquetas li .barra-conf i { display: block; height: 100%; background: var(--rojo); }
+  .etiquetas li.baja .barra-conf i { background: var(--ambar); }
+  .sin-etiquetas { margin: 0; padding: 10px 12px; border-radius: 10px; background: #fff4e0; color: var(--ambar); font-size: 14px; }
+
+  .galeria { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .galeria li { overflow: hidden; }
+  .galeria img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #ddd; }
+  .galeria .pie { padding: 8px 10px 10px; font-size: 13px; }
+  .galeria .pie b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .galeria .pie span { color: var(--suave); display: block; line-height: 1.35; }
+  .galeria .pie span.ambar { color: var(--ambar); }
+  .vacio { color: var(--suave); padding: 24px 16px; text-align: center; border: 1px dashed var(--borde); border-radius: var(--radio); }
+</style>
+</head>
+<body>
+<header class="barra">
+  <span class="logo" aria-hidden="true">UF</span>
+  <div><strong>¿Qué hay en la foto?</strong><small>Sube una foto y la nube te dice qué ve</small></div>
+</header>
+
+<main>
+  <div id="aviso" class="aviso" role="alert" hidden></div>
+
+  <form id="form" class="tarjeta subir">
+    <label class="archivo" id="zona">
+      <b id="zona-titulo">Tomar o elegir una foto</b>
+      <span id="zona-detalle">JPG, PNG o WebP. Hasta 20 MB.</span>
+      <input id="foto" type="file" name="foto" accept="image/*" capture="environment">
+    </label>
+    <input id="autor" type="text" name="autor" maxlength="40" placeholder="Tu nombre" autocomplete="given-name" aria-label="Tu nombre">
+    <button id="enviar" class="boton" type="submit" disabled>Subir y etiquetar</button>
+    <p id="error" class="error" role="alert" hidden></p>
+  </form>
+
+  <section id="resultado" class="tarjeta resultado" hidden>
+    <img id="res-imagen" alt="La foto que acabas de subir">
+    <div class="cuerpo">
+      <p class="quien" id="res-quien"></p>
+      <ul id="res-etiquetas" class="etiquetas"></ul>
+      <p id="res-sin" class="sin-etiquetas" hidden></p>
+    </div>
+  </section>
+
+  <h2>Las últimas fotos del grupo <button id="actualizar" class="boton secundario" type="button">Actualizar</button></h2>
+  <ul id="galeria" class="galeria"></ul>
+  <p id="galeria-vacia" class="vacio" hidden>Todavía no hay fotos. Sube la primera.</p>
+</main>
+
+<script>
+  const BACKEND = "__BACKEND_URL__".replace(/\/+$/, "");
+  const $ = (s) => document.querySelector(s);
+
+  function recordar(clave, valor) { try { localStorage.setItem(clave, valor); } catch (e) {} }
+  function recuperar(clave) { try { return localStorage.getItem(clave); } catch (e) { return null; } }
+
+  async function api(ruta, opciones) {
+    let respuesta;
+    try {
+      respuesta = await fetch(BACKEND + ruta, opciones);
+    } catch (e) {
+      throw Object.assign(new Error("No se pudo hablar con el backend"), { detalle: BACKEND || "(sin BACKEND_URL)" });
+    }
+    const texto = await respuesta.text();
+    let datos = null;
+    try { datos = texto ? JSON.parse(texto) : null; } catch (e) {}
+    if (!respuesta.ok) {
+      throw Object.assign(new Error((datos && datos.error) || `El backend respondió ${respuesta.status}`), { estado: respuesta.status });
+    }
+    return datos;
+  }
+
+  function avisar(e) {
+    const aviso = $("#aviso");
+    aviso.replaceChildren();
+    const titulo = document.createElement("strong");
+    titulo.textContent = e.message;
+    aviso.append(titulo);
+    if (e.detalle) {
+      const codigo = document.createElement("code");
+      codigo.textContent = e.detalle;
+      aviso.append(codigo);
+    }
+    aviso.hidden = false;
+  }
+
+  function porcentaje(confianza) { return Math.round(confianza * 100) + " %"; }
+
+  function pintarEtiquetas(lista, etiquetas) {
+    lista.replaceChildren();
+    for (const e of etiquetas) {
+      const li = document.createElement("li");
+      if (e.confianza < 0.7) li.className = "baja";
+      const nombre = document.createElement("span");
+      nombre.className = "nombre";
+      nombre.textContent = e.nombre;
+      const pct = document.createElement("span");
+      pct.className = "pct";
+      pct.textContent = porcentaje(e.confianza);
+      const barra = document.createElement("span");
+      barra.className = "barra-conf";
+      const relleno = document.createElement("i");
+      relleno.style.width = Math.round(e.confianza * 100) + "%";
+      barra.append(relleno);
+      li.append(nombre, pct, barra);
+      lista.append(li);
+    }
+  }
+
+  function pintarResultado(foto, urlLocal) {
+    $("#res-imagen").src = urlLocal || BACKEND + foto.miniatura;
+    $("#res-quien").textContent = `Subida por ${foto.autor}`;
+    const sin = $("#res-sin");
+    if (foto.etiquetas && foto.etiquetas.length) {
+      pintarEtiquetas($("#res-etiquetas"), foto.etiquetas);
+      sin.hidden = true;
+    } else {
+      $("#res-etiquetas").replaceChildren();
+      sin.textContent = "La foto se guardó, pero no llegaron etiquetas. Mira los registros del backend.";
+      sin.hidden = false;
+    }
+    $("#resultado").hidden = false;
+  }
+
+  function pintarGaleria(fotos) {
+    const galeria = $("#galeria");
+    galeria.replaceChildren();
+    $("#galeria-vacia").hidden = fotos.length > 0;
+    for (const f of fotos) {
+      const li = document.createElement("li");
+      li.className = "tarjeta";
+      const img = document.createElement("img");
+      img.src = BACKEND + f.miniatura;
+      img.loading = "lazy";
+      img.alt = f.etiquetas && f.etiquetas.length ? f.etiquetas.map((e) => e.nombre).join(", ") : "Foto sin etiquetas";
+      const pie = document.createElement("div");
+      pie.className = "pie";
+      const autor = document.createElement("b");
+      autor.textContent = f.autor;
+      const detalle = document.createElement("span");
+      if (f.etiquetas && f.etiquetas.length) {
+        detalle.textContent = f.etiquetas.slice(0, 3).map((e) => `${e.nombre} ${porcentaje(e.confianza)}`).join(" · ");
+      } else {
+        detalle.textContent = "sin etiquetas";
+        detalle.className = "ambar";
+      }
+      pie.append(autor, detalle);
+      li.append(img, pie);
+      galeria.append(li);
+    }
+  }
+
+  // La galería no se refresca sola. Cada listado del bucket es una operación
+  // que cuenta para la cuota, y una pestaña abierta no debería gastarla.
+  async function cargarGaleria() {
+    try {
+      pintarGaleria(await api("/fotos"));
+      $("#aviso").hidden = true;
+    } catch (e) {
+      avisar(e);
+    }
+  }
+
+  async function subir(evento) {
+    evento.preventDefault();
+    const archivo = $("#foto").files[0];
+    const autor = $("#autor").value.trim();
+    const error = $("#error");
+    error.hidden = true;
+    if (!archivo || !autor) {
+      error.textContent = !archivo ? "Elige una foto." : "Escribe tu nombre.";
+      error.hidden = false;
+      return;
+    }
+    recordar("autor", autor);
+    const boton = $("#enviar");
+    boton.disabled = true;
+    boton.textContent = "Subiendo…";
+    const datos = new FormData();
+    datos.append("foto", archivo);
+    datos.append("autor", autor);
+    try {
+      const foto = await api("/fotos", { method: "POST", body: datos });
+      pintarResultado(foto, URL.createObjectURL(archivo));
+      $("#form").reset();
+      $("#autor").value = autor;
+      marcarZona(null);
+      await cargarGaleria();
+    } catch (e) {
+      error.textContent = e.message;
+      error.hidden = false;
+    } finally {
+      boton.disabled = !$("#foto").files[0];
+      boton.textContent = "Subir y etiquetar";
+    }
+  }
+
+  function marcarZona(archivo) {
+    const zona = $("#zona");
+    zona.classList.toggle("con-foto", Boolean(archivo));
+    $("#zona-titulo").textContent = archivo ? "Foto lista" : "Tomar o elegir una foto";
+    $("#zona-detalle").textContent = archivo
+      ? `${archivo.name} · ${(archivo.size / 1024 / 1024).toFixed(1)} MB`
+      : "JPG, PNG o WebP. Hasta 20 MB.";
+    $("#enviar").disabled = !archivo;
+  }
+
+  $("#foto").addEventListener("change", () => marcarZona($("#foto").files[0]));
+  $("#form").addEventListener("submit", subir);
+  $("#actualizar").addEventListener("click", cargarGaleria);
+  $("#autor").value = recuperar("autor") || "";
+  cargarGaleria();
+</script>
+</body>
+</html>

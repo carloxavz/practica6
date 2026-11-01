@@ -1,0 +1,10 @@
+FROM python:3.15-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY main.py .
+
+# Cloud Run indica el puerto en la variable PORT. Un solo worker con varios
+# hilos basta: el trabajo pesado lo hacen Cloud Storage y Vision.
+CMD exec gunicorn --bind :${PORT:-8080} --workers 1 --threads 8 --timeout 0 main:app
