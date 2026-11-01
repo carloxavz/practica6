@@ -10,3 +10,7 @@ output "url_backend" {
 output "url_frontend" {
   value = google_cloud_run_v2_service.frontend.uri
 }
+
+output "bucket" {
+  value = google_storage_bucket.fotos.name
+}
